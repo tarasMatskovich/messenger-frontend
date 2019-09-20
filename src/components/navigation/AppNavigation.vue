@@ -26,44 +26,46 @@
 
             <v-divider></v-divider>
 
-            <v-list v-if="user" dense>
-                <v-list-item
-                        v-for="item in items"
-                        :key="item.title"
-                        link
-                >
-                    <v-list-item-icon>
-                        <v-icon>{{ item.icon }}</v-icon>
-                    </v-list-item-icon>
+            <div>
+                <v-list v-if="user" dense>
+                    <v-list-item
+                            v-for="item in items"
+                            :key="item.title"
+                            link
+                    >
+                        <v-list-item-icon>
+                            <v-icon>{{ item.icon }}</v-icon>
+                        </v-list-item-icon>
 
-                    <v-list-item-content>
-                        <v-list-item-title>{{ item.title }}</v-list-item-title>
-                    </v-list-item-content>
-                </v-list-item>
-            </v-list>
-            <v-list v-else>
-                <v-list-item
-                        v-for="item in defaultItems"
-                        :key="item.title"
-                        link
-                >
-                    <v-list-item-icon>
-                        <v-icon>{{ item.icon }}</v-icon>
-                    </v-list-item-icon>
+                        <v-list-item-content>
+                            <v-list-item-title>{{ item.title }}</v-list-item-title>
+                        </v-list-item-content>
+                    </v-list-item>
+                </v-list>
+                <v-list v-else>
+                    <v-list-item
+                            v-for="item in defaultItems"
+                            :key="item.title"
+                            link
+                            :to="item.link"
+                    >
+                        <v-list-item-icon>
+                            <v-icon>{{ item.icon }}</v-icon>
+                        </v-list-item-icon>
 
-                    <v-list-item-content>
-                        <v-list-item-title>{{ item.title }}</v-list-item-title>
-                    </v-list-item-content>
-                </v-list-item>
-            </v-list>
+                        <v-list-item-content>
+                            <v-list-item-title>{{ item.title }}</v-list-item-title>
+                        </v-list-item-content>
+                    </v-list-item>
+                </v-list>
+            </div>
         </v-navigation-drawer>
         <v-toolbar class="cyan lighten-1 white--text">
-            <v-app-bar-nav-icon class="white--text" @click="drawer = !drawer"></v-app-bar-nav-icon>
+            <v-app-bar-nav-icon class="white--text hidden-sm-and-up" @click="drawer = !drawer"></v-app-bar-nav-icon>
             <v-toolbar-title>{{appTitle}}</v-toolbar-title>
 
             <div class="flex-grow-1"></div>
-
-            <v-toolbar-items v-if="!user">
+            <v-toolbar-items v-if="!user" class="hidden-xs-only">
                 <v-btn text class="white--text" v-for="item in defaultItems" :to="item.link">
                     <span>
                         {{item.title}}
@@ -71,8 +73,8 @@
                     <v-icon>{{item.icon}}</v-icon>
                 </v-btn>
             </v-toolbar-items>
-            <v-toolbar-items v-else>
-                <v-btn text class="white--text" v-for="item in items">
+            <v-toolbar-items v-else class="hidden-xs-only">
+                <v-btn text class="white--text" v-for="item in items" :to="item.link">
                     <span>
                         {{item.title}}
                     </span>
