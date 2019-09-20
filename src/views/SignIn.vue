@@ -1,5 +1,7 @@
 <template>
-    $END$
+    <div id="sign-in">
+        SignIn
+    </div>
 </template>
 
 <script>

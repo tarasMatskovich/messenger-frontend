@@ -43,7 +43,7 @@
             </v-list>
             <v-list v-else>
                 <v-list-item
-                        v-for="item in items"
+                        v-for="item in defaultItems"
                         :key="item.title"
                         link
                 >
@@ -63,18 +63,20 @@
 
             <div class="flex-grow-1"></div>
 
-            <v-toolbar-items>
-                <v-btn text class="white--text">
+            <v-toolbar-items v-if="!user">
+                <v-btn text class="white--text" v-for="item in defaultItems" :to="item.link">
                     <span>
-                        Увійти
+                        {{item.title}}
                     </span>
-                    <v-icon>mdi-login</v-icon>
+                    <v-icon>{{item.icon}}</v-icon>
                 </v-btn>
-                <v-btn text class="white--text">
+            </v-toolbar-items>
+            <v-toolbar-items v-else>
+                <v-btn text class="white--text" v-for="item in items">
                     <span>
-                        Зареєструватись
+                        {{item.title}}
                     </span>
-                    <v-icon>mdi-account</v-icon>
+                    <v-icon>{{item.icon}}</v-icon>
                 </v-btn>
             </v-toolbar-items>
         </v-toolbar>
@@ -89,14 +91,19 @@
                 appTitle: 'Secure Messenger',
                 drawer: false,
                 user:null,
+                items: [
+
+                ],
                 defaultItems: [
                     {
                         title: "Увійти",
-                        icon: "mdi-login"
+                        icon: "mdi-login",
+                        link: "/sign-in"
                     },
                     {
                         title: "Зареєстурватись",
-                        icon: "mdi-account"
+                        icon: "mdi-account",
+                        link: "/sign-up"
                     }
                 ]
             }
