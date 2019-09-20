@@ -65,7 +65,7 @@
                 class="white--text hidden-sm-and-up"
                 @click="drawer = !drawer"
             ></v-app-bar-nav-icon>
-            <v-toolbar-title >
+            <v-toolbar-title>
                 <router-link to="/" class="main-title">
                     <span>
                         {{ appTitle }}
@@ -133,8 +133,8 @@ export default {
 </script>
 
 <style scoped>
-    a.main-title {
-        color: #fff;
-        text-decoration: none;
-    }
+a.main-title {
+    color: #fff;
+    text-decoration: none;
+}
 </style>

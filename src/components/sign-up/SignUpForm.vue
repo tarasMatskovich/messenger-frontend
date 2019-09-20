@@ -30,7 +30,10 @@
                                     @input="$v.phone.$touch()"
                                     @blur="$v.phone.$touch()"
                                 ></v-text-field>
-                                <v-file-input label="File input" v-model="img"></v-file-input>
+                                <v-file-input
+                                    label="File input"
+                                    v-model="img"
+                                ></v-file-input>
                                 <v-text-field
                                     v-model="password"
                                     :error-messages="passwordErrors"
@@ -130,7 +133,12 @@ export default {
         },
         hasError() {
             return (
-                (this.email === '' || this.password === '' || this.name === '' || this.phone === '' ||  this.file === null) || this.$v.$anyError
+                this.email === '' ||
+                this.password === '' ||
+                this.name === '' ||
+                this.phone === '' ||
+                this.file === null ||
+                this.$v.$anyError
             );
         }
     },
@@ -139,7 +147,9 @@ export default {
         submit() {
             this.$v.$touch();
             this.$store.commit('setLoader', true);
-            setTimeout(() => {this.$store.commit('setLoader', false)}, 2000);
+            setTimeout(() => {
+                this.$store.commit('setLoader', false);
+            }, 2000);
         },
         clear() {
             this.$v.$reset();

@@ -88,7 +88,7 @@ export default {
         },
         hasError() {
             return (
-                (this.email === '' || this.password === '') || this.$v.$anyError
+                this.email === '' || this.password === '' || this.$v.$anyError
             );
         }
     },
@@ -96,7 +96,9 @@ export default {
         submit() {
             this.$v.$touch();
             this.$store.commit('setLoader', true);
-            setTimeout(() => {this.$store.commit('setLoader', false)}, 2000);
+            setTimeout(() => {
+                this.$store.commit('setLoader', false);
+            }, 2000);
         },
         clear() {
             this.$v.$reset();

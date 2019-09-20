@@ -7,8 +7,8 @@
             </v-content>
             <v-overlay :value="showLoader">
                 <v-progress-circular
-                        indeterminate
-                        size="64"
+                    indeterminate
+                    size="64"
                 ></v-progress-circular>
             </v-overlay>
         </v-app>

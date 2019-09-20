@@ -13,7 +13,7 @@ export default new Vuex.Store({
         }
     },
     actions: {
-        getLoader({state}) {
+        getLoader({ state }) {
             return state.loader;
         }
     }
