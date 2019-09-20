@@ -15,6 +15,23 @@
                                     @blur="$v.email.$touch()"
                                 ></v-text-field>
                                 <v-text-field
+                                    v-model="name"
+                                    :error-messages="nameErrors"
+                                    label="Ім'я"
+                                    required
+                                    @input="$v.name.$touch()"
+                                    @blur="$v.name.$touch()"
+                                ></v-text-field>
+                                <v-text-field
+                                    v-model="phone"
+                                    :error-messages="phoneErrors"
+                                    label="Телефон"
+                                    required
+                                    @input="$v.phone.$touch()"
+                                    @blur="$v.phone.$touch()"
+                                ></v-text-field>
+                                <v-file-input label="File input" v-model="img"></v-file-input>
+                                <v-text-field
                                     v-model="password"
                                     :error-messages="passwordErrors"
                                     label="Пароль"
@@ -46,27 +63,60 @@ import {
     required,
     minLength,
     maxLength,
-    email
+    email,
+    numeric
 } from 'vuelidate/lib/validators';
 
 export default {
-    name: 'SignInForm',
+    name: 'SignUpForm',
     mixins: [validationMixin],
     validations: {
+        email: { required, email },
+        name: { required, minLength: minLength(3), maxLength: maxLength(256) },
+        phone: { required, numeric },
         password: {
             required,
             minLength: minLength(5),
             maxLength: maxLength(256)
-        },
-        email: { required, email }
+        }
     },
     data() {
         return {
             email: '',
+            name: '',
+            phone: '',
+            img: null,
             password: ''
         };
     },
     computed: {
+        emailErrors() {
+            const errors = [];
+            if (!this.$v.email.$dirty) return errors;
+            !this.$v.email.email && errors.push('Некоректний E-mail');
+            !this.$v.email.required &&
+                errors.push("E-mail обов'язковий для заповнення");
+            return errors;
+        },
+        nameErrors() {
+            const errors = [];
+            if (!this.$v.name.$dirty) return errors;
+            !this.$v.name.required &&
+                errors.push("Ім'я обов'язкове для заповнення");
+            !this.$v.name.minLength &&
+                errors.push("Ім'я повинно містити не менше 3 символів");
+            !this.$v.name.maxLength &&
+                errors.push("Ім'я повинно містити не більше ніж 256 символів");
+            return errors;
+        },
+        phoneErrors() {
+            const errors = [];
+            if (!this.$v.phone.$dirty) return errors;
+            !this.$v.phone.required &&
+                errors.push("Телефон обов'язковий для заповнення");
+            !this.$v.phone.numeric && errors.push('Некоректний телефон');
+            return errors;
+        },
         passwordErrors() {
             const errors = [];
             if (!this.$v.password.$dirty) return errors;
@@ -75,23 +125,16 @@ export default {
             !this.$v.password.maxLength &&
                 errors.push('Пароль повинен містити не більше 256 символів');
             !this.$v.password.required &&
-                errors.push('Пароль обовязковий для заповнення');
-            return errors;
-        },
-        emailErrors() {
-            const errors = [];
-            if (!this.$v.email.$dirty) return errors;
-            !this.$v.email.email && errors.push('Некоректний E-mail');
-            !this.$v.email.required &&
-                errors.push('E-mail обовязкове для заповнення');
+                errors.push("Пароль обов'язковий для заповнення");
             return errors;
         },
         hasError() {
             return (
-                (this.email === '' || this.password === '') || this.$v.$anyError
+                (this.email === '' || this.password === '' || this.name === '' || this.phone === '' ||  this.file === null) || this.$v.$anyError
             );
         }
     },
+
     methods: {
         submit() {
             this.$v.$touch();
@@ -101,6 +144,9 @@ export default {
         clear() {
             this.$v.$reset();
             this.email = '';
+            this.name = '';
+            this.phone = '';
+            this.img = null;
             this.password = '';
         }
     }
