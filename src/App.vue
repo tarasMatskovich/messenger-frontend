@@ -27,6 +27,13 @@ export default {
     },
     components: {
         AppNavigation
+    },
+    created() {
+        this.$store.transportService.call('ua.vticket.loll.eventgroup.get', {eventGroupId:5})
+            .then((response) => {
+                console.log('RESPONSE');
+                console.log(response);
+            });
     }
 };
 </script>

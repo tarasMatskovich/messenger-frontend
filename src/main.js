@@ -4,10 +4,12 @@ import router from './router';
 import store from './store';
 import vuetify from './plugins/vuetify';
 import VueTheMask from 'vue-the-mask';
+import transportService from './services/transport-service/transportService'
 import '@babel/polyfill';
 
 Vue.config.productionTip = false;
 Vue.use(VueTheMask);
+store.transportService = transportService;
 
 new Vue({
     router,
