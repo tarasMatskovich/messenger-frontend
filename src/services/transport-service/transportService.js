@@ -4,7 +4,7 @@ import VueWamp from "vue-wamp/dist/vue-wamp.esm";
 Vue.use(VueWamp, {
     debug: true, // Logs will be written to the console
     url: 'ws://localhost:8080/ws',
-    realm: 'vticket',
+    realm: 'realm1',
     onopen: function(session, details) {
         console.log('WAMP connected', session, details);
     },

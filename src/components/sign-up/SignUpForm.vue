@@ -147,9 +147,18 @@ export default {
         submit() {
             this.$v.$touch();
             this.$store.commit('setLoader', true);
-            setTimeout(() => {
-                this.$store.commit('setLoader', false);
-            }, 2000);
+            let userPayload = this.getUserPayload();
+            this.$store.transportService.call('action.user.signup', userPayload)
+                .then((response) => {
+                    this.$store.commit('setLoader', false);
+                    alert('Користувач був успішно створений');
+                    console.log(response)
+                });
+        },
+        getUserPayload() {
+            return {
+                name:this.name
+            };
         },
         clear() {
             this.$v.$reset();
