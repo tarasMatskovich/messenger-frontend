@@ -3,6 +3,9 @@
         <v-container>
             <v-row justify="center">
                 <v-col cols="12" sm="4">
+                    <v-alert v-model="alert.show" :type="alert.type" :dismissible="alert.dismissible">
+                        {{alert.text}}
+                    </v-alert>
                     <v-card>
                         <v-card-text>
                             <form>
@@ -89,7 +92,13 @@ export default {
             name: '',
             phone: '',
             img: null,
-            password: ''
+            password: '',
+            alert: {
+                show:false,
+                type: 'success',
+                text: '',
+                dismissible: true
+            }
         };
     },
     computed: {
@@ -151,13 +160,33 @@ export default {
             this.$store.transportService.call('action.user.signup', userPayload)
                 .then((response) => {
                     this.$store.commit('setLoader', false);
-                    alert('Користувач був успішно створений');
+                    this.showSuccessAlert('Користувач був успішно створений');
                     console.log(response)
-                });
+                })
+                .catch((error) => {
+                    this.$store.commit('setLoader', false);
+                    this.showErrorAlert(error.args[0]);
+                    console.log(error);
+            });
+        },
+        showSuccessAlert(text) {
+            this.alert.text = text;
+            this.alert.type = 'success';
+            this.alert.show = true;
+        },
+        showErrorAlert(text) {
+            this.alert.text = text;
+            this.alert.type = 'error';
+            this.alert.show = true;
         },
         getUserPayload() {
             return {
-                name:this.name
+                name: this.name,
+                email: this.email,
+                phone: this.phone,
+                image: 'test.img',
+                password: this.password,
+                userId: 10
             };
         },
         clear() {
