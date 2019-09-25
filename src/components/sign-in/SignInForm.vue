@@ -3,6 +3,9 @@
         <v-container>
             <v-row justify="center">
                 <v-col cols="12" sm="4">
+                    <v-alert v-model="alert.show" :type="alert.type" :dismissible="alert.dismissible">
+                        {{alert.text}}
+                    </v-alert>
                     <v-card>
                         <v-card-text>
                             <form>
@@ -63,7 +66,13 @@ export default {
     data() {
         return {
             email: '',
-            password: ''
+            password: '',
+            alert: {
+                show:false,
+                type: 'success',
+                text: '',
+                dismissible: true
+            }
         };
     },
     computed: {
@@ -96,9 +105,27 @@ export default {
         submit() {
             this.$v.$touch();
             this.$store.commit('setLoader', true);
-            setTimeout(() => {
-                this.$store.commit('setLoader', false);
-            }, 2000);
+            this.$store.transportService.call('action.user.signin', {email:this.email, password: this.password})
+                .then((response) => {
+                    this.$store.commit('setLoader', false);
+                    this.showSuccessAlert('Такий користувач є');
+                    console.log(response)
+                })
+                .catch((error) => {
+                    this.$store.commit('setLoader', false);
+                    this.showErrorAlert(error.args[0]);
+                    console.log(error);
+                });
+        },
+        showSuccessAlert(text) {
+            this.alert.text = text;
+            this.alert.type = 'success';
+            this.alert.show = true;
+        },
+        showErrorAlert(text) {
+            this.alert.text = text;
+            this.alert.type = 'error';
+            this.alert.show = true;
         },
         clear() {
             this.$v.$reset();
