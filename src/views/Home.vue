@@ -39,7 +39,7 @@ export default {
         },
     },
     created() {
-        this.$store.transportService.call('action.test', {userId:6, token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhdXRoLnNlY3VyZW1lc3Nlbmdlci5jb20udWEiLCJhdWQiOiJzZWN1cmVtZXNzZW5nZXIuY29tLnVhIiwidXNlcklkIjo2LCJleHAiOiIyMDE5LTA5LTI4In0.fe6IkAqBNsWlRsOCJETTbEFEVOoXKQHWn-m-mTJ0yxA'})
+        this.$store.transportService.call('action.test', {userId:6, token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhdXRoLnNlY3VyZW1lc3Nlbmdlci5jb20udWEiLCJhdWQiOiJzZWN1cmVtZXNzZW5nZXIuY29tLnVhIiwidXNlcklkIjoxOSwiZXhwIjoxNTY5NTAwODc1fQ==.e5c2d9e1d204a3d29d8b08ad526a836e2c4fb38910525aad3864d903d43c8d1d'})
             .then((response) => {
                 this.showSuccessAlert('Такий користувач є');
                 console.log(response)
