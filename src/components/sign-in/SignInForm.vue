@@ -108,8 +108,12 @@ export default {
             this.$store.transportService.call('action.user.signin', {email:this.email, password: this.password})
                 .then((response) => {
                     this.$store.commit('setLoader', false);
-                    this.showSuccessAlert('Такий користувач є');
-                    console.log(response)
+                    let user = response.user;
+                    user.token = response.token;
+                    this.$store.commit('setUser', user);
+                    localStorage.setItem('user', JSON.stringify(user));
+                    this.showSuccessAlert('Ви успішно ввійшли');
+
                 })
                 .catch((error) => {
                     this.$store.commit('setLoader', false);

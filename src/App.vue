@@ -29,7 +29,10 @@ export default {
         AppNavigation
     },
     created() {
-
+        let user = localStorage.getItem('user');
+        if (user) {
+            this.$store.commit('setUser', user);
+        }
     }
 };
 </script>
