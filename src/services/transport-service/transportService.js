@@ -20,7 +20,17 @@ class TransportService {
         this.connection = Vue.Wamp;
     }
 
+    getToken() {
+        let user = localStorage.getItem('user');
+        if (!user) {
+            return null;
+        }
+        user = JSON.parse(user);
+        return user.token;
+    }
+
     call(rpcName, payload) {
+        payload.token = this.getToken();
         return this.connection.call(rpcName, [JSON.stringify(payload)]);
     }
 

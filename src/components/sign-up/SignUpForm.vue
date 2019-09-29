@@ -94,7 +94,7 @@ export default {
             img: null,
             password: '',
             alert: {
-                show:false,
+                show: false,
                 type: 'success',
                 text: '',
                 dismissible: true
@@ -146,27 +146,36 @@ export default {
                 this.password === '' ||
                 this.name === '' ||
                 this.phone === '' ||
-                this.file === null ||
                 this.$v.$anyError
             );
         }
     },
-
     methods: {
+        toBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        },
         submit() {
             this.$v.$touch();
-            this.$store.commit('setLoader', true);
+            this.$store.commit('setLoader', false);
             let userPayload = this.getUserPayload();
-            this.$store.transportService.call('action.user.signup', userPayload)
-                .then((response) => {
-                    this.$store.commit('setLoader', false);
-                    this.showSuccessAlert('Користувач був успішно створений');
-                    console.log(response)
-                })
-                .catch((error) => {
-                    this.$store.commit('setLoader', false);
-                    this.showErrorAlert(error.args[0]);
-                    console.log(error);
+            this.toBase64(this.img).then((res) => {
+                userPayload.image = res;
+                this.$store.transportService.call('action.user.signup', userPayload)
+                    .then((response) => {
+                        this.$store.commit('setLoader', false);
+                        this.showSuccessAlert('Користувач був успішно створений');
+                        console.log(response);
+                    })
+                    .catch((error) => {
+                        this.$store.commit('setLoader', false);
+                        this.showErrorAlert(error.args[0]);
+                        console.log(error);
+                    });
             });
         },
         showSuccessAlert(text) {
@@ -184,9 +193,8 @@ export default {
                 name: this.name,
                 email: this.email,
                 phone: this.phone,
-                image: 'test.img',
-                password: this.password,
-                userId: 10
+                image: null,
+                password: this.password
             };
         },
         clear() {
