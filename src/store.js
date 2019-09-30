@@ -6,7 +6,8 @@ Vue.use(Vuex);
 export default new Vuex.Store({
     state: {
         loader: false,
-        user: null
+        user: null,
+        sessions: []
     },
     mutations: {
         setLoader(state, payload) {
@@ -14,6 +15,9 @@ export default new Vuex.Store({
         },
         setUser(state, payload) {
             state.user = payload;
+        },
+        setSessions(state, payload) {
+            state.sessions = payload;
         }
     },
     actions: {
@@ -22,6 +26,9 @@ export default new Vuex.Store({
         },
         getUser({ state }) {
             return state.user;
+        },
+        getSessions({ state }) {
+            return state.sessions;
         }
     }
 });

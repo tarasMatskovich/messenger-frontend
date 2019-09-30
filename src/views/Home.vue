@@ -15,23 +15,25 @@
                         </v-text-field>
                     </v-card-text>
                     <v-list>
-                        <v-list-item v-for="user in users" :key="user.name" @click="" color="cyan lighten-1">
+                        <v-list-item v-for="session in sessions" @click="" color="cyan lighten-1">
                             <v-list-item-avatar>
-                                <v-img :src="user.image"></v-img>
+                                <v-img :src="session.user.image"></v-img>
                             </v-list-item-avatar>
                             <v-list-item-content>
-                                <v-list-item-title v-text="user.name">
+                                <v-list-item-title v-text="session.user.name">
                                 </v-list-item-title>
-                                <v-list-item-subtitle v-text="user.message"></v-list-item-subtitle>
+                                <v-list-item-subtitle>
+                                    <span v-if="session.lastMessage">{{session.lastMessage.content}}</span>
+                                </v-list-item-subtitle>
                             </v-list-item-content>
-                            <v-badge overlap>
-                                <template v-slot:badge>{{user.unread}}</template>
-                                <v-list-item-icon>
-                                    <v-list-item-subtitle>
-                                        {{user.date}}
-                                    </v-list-item-subtitle>
-                                </v-list-item-icon>
-                            </v-badge>
+                            <!--<v-badge overlap>-->
+                                <!--<template v-slot:badge>{{user.unread}}</template>-->
+                                <!--<v-list-item-icon>-->
+                                    <!--<v-list-item-subtitle>-->
+                                        <!--{{user.date}}-->
+                                    <!--</v-list-item-subtitle>-->
+                                <!--</v-list-item-icon>-->
+                            <!--</v-badge>-->
                         </v-list-item>
                     </v-list>
                 </v-tab-item>
@@ -72,6 +74,7 @@ export default {
                 text: '',
                 dismissible: true
             },
+            sessions: [],
             users: [
                 {
                     name: 'John',
@@ -117,15 +120,15 @@ export default {
             this.alert.type = 'error';
             this.alert.show = true;
         },
-        fetchUsers() {
-            this.$store.transportService.call('action.user.getlist', {})
-                .then((response) => {
-                    //this.users = response.users;
+        fetchSessions() {
+            this.$store.transportService.call('action.session.getlist', {})
+                .then((res) => {
+                    this.sessions = res.sessions;
                 })
-                .catch((error) => {
-                    this.showErrorAlert('Виникла помилка');
-                    console.log(error);
-                })
+                .catch((err) => {
+                    alert('Помилка');
+                    console.log(err);
+                });
         }
     },
     created() {
@@ -141,7 +144,7 @@ export default {
             .catch((error) => {
                 this.$router.push('/sign-in')
             });
-        this.fetchUsers();
+        this.fetchSessions();
     }
 };
 </script>
