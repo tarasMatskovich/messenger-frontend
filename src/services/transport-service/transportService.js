@@ -48,6 +48,14 @@ class TransportService {
         return this.connection.call(rpcName, [JSON.stringify(payload)]);
     }
 
+    subscribe(topic, handler) {
+        this.connection.subscribe(topic, handler);
+    }
+
+    publish(topic, args) {
+        this.connection.publish(topic, [JSON.stringify(args)]);
+    }
+
 }
 
 export default new TransportService();

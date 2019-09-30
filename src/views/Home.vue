@@ -15,7 +15,7 @@
                         </v-text-field>
                     </v-card-text>
                     <v-list>
-                        <v-list-item v-for="session in sessions" @click="" color="cyan lighten-1">
+                        <v-list-item v-for="session in sessions" @click="openChat(session.sessionId)" color="cyan lighten-1">
                             <v-list-item-avatar>
                                 <v-img :src="session.user.image"></v-img>
                             </v-list-item-avatar>
@@ -120,10 +120,32 @@ export default {
             this.alert.type = 'error';
             this.alert.show = true;
         },
+        openChat(sessionId) {
+            this.$store.transportService.call('action.message.create', {
+                userId:21,
+                receivedUserId:22,
+                sessionId:1,
+                content: 'Test message 1'
+            });
+        },
+        listenSessions() {
+            this.sessions.forEach((session) => {
+                if (null !== session.sessionId && undefined !== session.sessionId) {
+                    this.$store.transportService.subscribe(`user.session.${session.sessionId}`, (args) => {
+                        alert('Event got');
+                        console.log(args);
+                    });
+                }
+            });
+            setTimeout(() => {
+                this.$store.transportService.call('action.user.getlist', {});
+            }, 2000);
+        },
         fetchSessions() {
             this.$store.transportService.call('action.session.getlist', {})
                 .then((res) => {
                     this.sessions = res.sessions;
+                    this.listenSessions();
                 })
                 .catch((err) => {
                     alert('Помилка');
