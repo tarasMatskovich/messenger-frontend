@@ -133,8 +133,8 @@ export default {
 </script>
 
 <style scoped>
-a.main-title {
-    color: #fff;
-    text-decoration: none;
-}
+    a.main-title {
+        color: #fff;
+        text-decoration: none;
+    }
 </style>

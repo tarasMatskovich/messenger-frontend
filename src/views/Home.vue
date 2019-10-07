@@ -1,73 +1,87 @@
 <template>
-    <div id="home">
-        <v-card class="float-left" width="400" style="height: calc(100vh - 65px);">
-            <v-tabs grow v-model="tabs" color="cyan lighten-1">
-                <v-tab>Усі</v-tab>
-                <v-tab>Онлайн</v-tab>
-            </v-tabs>
-            <v-tabs-items v-model="tabs">
-                <v-tab-item>
-                    <v-card-text>
-                        <v-text-field
-                                label="Пошук"
-                                color="cyan lighten-1"
-                        >
-                        </v-text-field>
-                    </v-card-text>
-                    <v-list>
-                        <v-list-item v-for="session in sessions" @click="openChat(session.sessionId)" color="cyan lighten-1">
-                            <v-list-item-avatar>
-                                <v-img :src="session.user.image"></v-img>
-                            </v-list-item-avatar>
-                            <v-list-item-content>
-                                <v-list-item-title v-text="session.user.name">
-                                </v-list-item-title>
-                                <v-list-item-subtitle>
-                                    <span v-if="session.lastMessage">{{session.lastMessage.content}}</span>
-                                </v-list-item-subtitle>
-                            </v-list-item-content>
-                            <!--<v-badge overlap>-->
-                                <!--<template v-slot:badge>{{user.unread}}</template>-->
-                                <!--<v-list-item-icon>-->
-                                    <!--<v-list-item-subtitle>-->
+    <div id="home" v-chat-scroll>
+        <v-container fluid>
+            <v-row class="all-height">
+                <v-col cols="3" class="all-height">
+                    <v-card style="height: 100%;">
+                        <v-tabs grow v-model="tabs" color="cyan lighten-1">
+                            <v-tab>Усі</v-tab>
+                            <v-tab>Онлайн</v-tab>
+                        </v-tabs>
+                        <v-tabs-items v-model="tabs">
+                            <v-tab-item>
+                                <v-card-text>
+                                    <v-text-field
+                                            label="Пошук"
+                                            color="cyan lighten-1"
+                                    >
+                                    </v-text-field>
+                                </v-card-text>
+                                <v-list>
+                                    <v-list-item v-for="session in sessions" @click="openChat(session.sessionId)" color="cyan lighten-1">
+                                        <v-list-item-avatar>
+                                            <v-img :src="session.user.image"></v-img>
+                                        </v-list-item-avatar>
+                                        <v-list-item-content>
+                                            <v-list-item-title v-text="session.user.name">
+                                            </v-list-item-title>
+                                            <v-list-item-subtitle>
+                                                <span v-if="session.lastMessage">{{session.lastMessage.content}}</span>
+                                            </v-list-item-subtitle>
+                                        </v-list-item-content>
+                                        <!--<v-badge overlap>-->
+                                        <!--<template v-slot:badge>{{user.unread}}</template>-->
+                                        <!--<v-list-item-icon>-->
+                                        <!--<v-list-item-subtitle>-->
                                         <!--{{user.date}}-->
-                                    <!--</v-list-item-subtitle>-->
-                                <!--</v-list-item-icon>-->
-                            <!--</v-badge>-->
-                        </v-list-item>
-                    </v-list>
-                </v-tab-item>
-                <v-tab-item>
-                    <v-card-text>
-                        <p>
-                            12345
-                        </p>
-                    </v-card-text>
-                </v-tab-item>
-            </v-tabs-items>
-        </v-card>
-        <v-container>
-            <v-row justify="center">
-                <v-col cols="12" sm="4">
-                    <v-alert v-model="alert.show" :type="alert.type" :dismissible="alert.dismissible">
-                        {{alert.text}}
-                    </v-alert>
-                    <ul>
-                        <li v-for="user in users" :key="user.id">
-                            {{user.name}}
-                        </li>
-                    </ul>
+                                        <!--</v-list-item-subtitle>-->
+                                        <!--</v-list-item-icon>-->
+                                        <!--</v-badge>-->
+                                    </v-list-item>
+                                </v-list>
+                            </v-tab-item>
+                            <v-tab-item>
+                                <v-card-text>
+                                    <p>
+                                        12345
+                                    </p>
+                                </v-card-text>
+                            </v-tab-item>
+                        </v-tabs-items>
+                    </v-card>
+                </v-col>
+                <v-col cols="9" class="all-height">
+                    <!--<v-container>-->
+                        <!--<v-row justify="center">-->
+                            <!--<v-col cols="12" sm="4">-->
+                                <!--<v-alert v-model="alert.show" :type="alert.type" :dismissible="alert.dismissible">-->
+                                    <!--{{alert.text}}-->
+                                <!--</v-alert>-->
+                            <!--</v-col>-->
+                        <!--</v-row>-->
+                    <!--</v-container>-->
+                    <chat v-if="null !== selectedSessionId" :messages="messages[selectedSessionId]" :sessionId="selectedSessionId"></chat>
+                    <chat v-else-if="undefined === selectedSessionId" :messages="[]"></chat>
                 </v-col>
             </v-row>
         </v-container>
     </div>
 </template>
 
+<style>
+    .all-height {
+        height: calc(100vh - 64px - 12px - 12px);
+    }
+</style>
+
 <script>
+import Chat from '../components/chat/Chat';
+
 export default {
     name: 'home',
     data() {
         return {
+            selectedSessionId:null,
             alert: {
                 show:false,
                 type: 'success',
@@ -75,6 +89,7 @@ export default {
                 dismissible: true
             },
             sessions: [],
+            messages: [],
             users: [
                 {
                     name: 'John',
@@ -108,7 +123,9 @@ export default {
             tabs: null
         }
     },
-    components: {},
+    components: {
+        Chat
+    },
     methods: {
         showSuccessAlert(text) {
             this.alert.text = text;
@@ -121,19 +138,49 @@ export default {
             this.alert.show = true;
         },
         openChat(sessionId) {
-            this.$store.transportService.call('action.message.create', {
-                userId:21,
-                receivedUserId:22,
-                sessionId:1,
-                content: 'Test message 1'
-            });
+            this.$store.commit('setLoader', true);
+            if (sessionId === undefined) {
+                this.selectedSessionId = sessionId;
+                this.$store.commit('setLoader', false);
+            } else {
+                // this.$store.transportService.call('action.session.get', {
+                //     sessionId:sessionId
+                // }).then((response) => [
+                //
+                // ]).catch((error) => {
+                //     this.$store.commit('setLoader', false);
+                //     console.log(error);
+                //     alert('Трапилась помилка при отриманні даних сесії');
+                // });
+                this.$store.transportService.call('action.message.getlist', {
+                    sessionId:sessionId,
+                }).then((response) => {
+                    if (this.messages[response.sessionId] === undefined) {
+                        this.messages[response.sessionId] = response.messages;
+                    }
+                    this.selectedSessionId = sessionId;
+                    this.$store.commit('setLoader', false);
+                }).catch((error) => {
+                    this.$store.commit('setLoader', false);
+                    console.log(error);
+                    alert('Трапилась помилка при отриманні списку повідомлень');
+                });
+            }
         },
         listenSessions() {
-            this.sessions.forEach((session) => {
+            this.sessions.forEach((session, i) => {
                 if (null !== session.sessionId && undefined !== session.sessionId) {
                     this.$store.transportService.subscribe(`user.session.${session.sessionId}`, (args) => {
-                        alert('Event got');
-                        console.log(args);
+                        if (undefined !== args[0] && null !== args[0]) {
+                            let eventType = args[0];
+                            if ('message' === eventType) {
+                                if (undefined !== args[1] && null !== args[1]) {
+                                    let message = JSON.parse(args[1]);
+                                    this.messages[session.sessionId].push({message:message});
+                                    this.sessions[i]['lastMessage'] = message;
+                                }
+                            }
+                        }
                     });
                 }
             });

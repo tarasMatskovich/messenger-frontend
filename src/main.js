@@ -9,6 +9,7 @@ import '@babel/polyfill';
 
 Vue.config.productionTip = false;
 Vue.use(VueTheMask);
+Vue.use(require('vue-chat-scroll'));
 store.transportService = transportService;
 
 new Vue({
