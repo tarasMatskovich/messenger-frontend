@@ -3,12 +3,13 @@ import VueWamp from "vue-wamp/dist/vue-wamp.esm";
 
 Vue.use(VueWamp, {
     debug: true, // Logs will be written to the console
-    url: 'ws://localhost:8080/ws',
+    url: 'ws://192.168.0.95:8080/ws',
     realm: 'realm1',
     onopen: function(session, details) {
         console.log('WAMP connected', session, details);
     },
     onclose: function(reason, details) {
+        localStorage.setItem('key', 'value');
         console.log('WAMP closed: ' + reason, details);
     }
 });

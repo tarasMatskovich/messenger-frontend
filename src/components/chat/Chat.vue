@@ -53,7 +53,6 @@
         },
         watch: {
             messages: function (newValue, oldValue) {
-                console.log(undefined === newValue);
                 if (undefined === newValue) {
                     this.messagesArray = [];
                 } else {
