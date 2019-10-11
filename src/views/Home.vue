@@ -23,7 +23,9 @@
                                             <v-img :src="session.user.image"></v-img>
                                         </v-list-item-avatar>
                                         <v-list-item-content>
-                                            <v-list-item-title v-text="session.user.name">
+                                            <v-list-item-title>
+                                                <span>{{session.user.name}}</span>
+                                                <span v-if="checkOnline(session.user)" class="online-indicator teal accent-3"></span>
                                             </v-list-item-title>
                                             <v-list-item-subtitle>
                                                 <span v-if="session.lastMessage">{{session.lastMessage.content}}</span>
@@ -71,6 +73,13 @@
 <style>
     .all-height {
         height: calc(100vh - 64px - 12px - 12px);
+    }
+    .online-indicator {
+        width: 10px;
+        height: 10px;
+        margin-left: 5px;
+        display: inline-block;
+        border-radius: 50%;
     }
 </style>
 
@@ -120,13 +129,69 @@ export default {
                     unread: 0
                 }
             ],
-            tabs: null
+            tabs: null,
+            onlineUsers: []
         }
     },
     components: {
         Chat
     },
     methods: {
+        async fetchOnlineUsers() {
+            try {
+                let data =  await this.$store.transportService.call('action.user.online.getlist', {});
+                let onlineUsers = data.onlineUsers;
+                let arr = [];
+                for(let index in onlineUsers) {
+                    arr.push(onlineUsers[index])
+                }
+                return arr;
+            } catch(error) {
+                console.log(error);
+                alert('Трапилась помилка при отриманні списку онлайн користувачів');
+            }
+        },
+        pushUserToOnline(userId) {
+            if (this.onlineUsers.indexOf(userId) === -1) {
+                this.onlineUsers.push(userId);
+            }
+        },
+        detachUserFromOnline(userId) {
+            if (this.onlineUsers.length > 0) {
+                if (this.onlineUsers.indexOf(userId) !== -1) {
+                    this.onlineUsers.splice(this.onlineUsers.indexOf(userId), 1);
+                }
+            }
+        },
+        subscribeOnNetworkStatus() {
+            this.$store.transportService.subscribe('application.network.status', (args) => {
+                let parameters = JSON.parse(args);
+                if (undefined !== parameters.userId && null !== parameters.userId ) {
+                    this.pushUserToOnline(parameters.userId);
+                }
+            });
+            this.$store.transportService.subscribe('application.network.detach.status', (args) => {
+                let parameters = JSON.parse(args);
+                if (undefined !== parameters.userId && null !== parameters.userId) {
+                    this.detachUserFromOnline(parameters.userId);
+                }
+            })
+        },
+        publishNetworkStatus() {
+            this.$store.transportService.publish('application.network.status', {
+                userId: this.$store.state.user.id,
+                online: true
+            })
+        },
+        checkOnline(user) {
+            let isUserOnline = false;
+            this.onlineUsers.forEach((onlineUserId) => {
+                if (onlineUserId === user.id) {
+                    isUserOnline = true;
+                }
+            });
+            return isUserOnline;
+        },
         showSuccessAlert(text) {
             this.alert.text = text;
             this.alert.type = 'success';
@@ -200,7 +265,7 @@ export default {
                 });
         }
     },
-    created() {
+    async created() {
         let user = this.$store.state.user;
         if (!user) {
             this.$router.push('/sign-in');
@@ -214,6 +279,9 @@ export default {
                 this.$router.push('/sign-in')
             });
         this.fetchSessions();
+        this.onlineUsers = await this.fetchOnlineUsers();
+        this.publishNetworkStatus();
+        this.subscribeOnNetworkStatus();
     }
 };
 </script>
