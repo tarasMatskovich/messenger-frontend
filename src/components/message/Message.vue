@@ -12,7 +12,10 @@
             <v-col cols="3">
                 <v-card :class="isUserSender(message.user.id) ? 'cyan lighten-4' : ''">
                     <v-card-title class="subtitle-2">{{message.user.name}}</v-card-title>
-                    <v-card-text>{{message.content}}</v-card-text>
+                    <v-card-text>
+                        <span class="message-content">{{message.content}}</span>
+                        <span class="message-date">{{message.createdAt}}</span>
+                    </v-card-text>
                 </v-card>
             </v-col>
         </v-row>
@@ -32,5 +35,9 @@
 </script>
 
 <style scoped>
-
+    .message-date {
+        float: right;
+        margin-top: 10px;
+        font-size: 12px;
+    }
 </style>

@@ -1,5 +1,5 @@
 <template>
-    <div id="home" v-chat-scroll>
+    <div id="home">
         <v-container fluid>
             <v-row class="all-height">
                 <v-col cols="3" class="all-height">
@@ -28,7 +28,11 @@
                                                 <span v-if="checkOnline(session.user)" class="online-indicator teal accent-3"></span>
                                             </v-list-item-title>
                                             <v-list-item-subtitle>
-                                                <span v-if="session.lastMessage">{{session.lastMessage.content}}</span>
+                                                <span v-if="session.lastMessage">
+                                                    <span class="last-message-user" v-if="session.lastMessage.user">{{session.lastMessage.user.name}}:</span>
+                                                    <span>{{session.lastMessage.content}}</span>
+                                                    <span class="last-message-date">{{session.lastMessage.createdAt}}</span>
+                                                </span>
                                             </v-list-item-subtitle>
                                         </v-list-item-content>
                                         <!--<v-badge overlap>-->
@@ -81,6 +85,10 @@
         display: inline-block;
         border-radius: 50%;
     }
+
+    .last-message-date {
+        float: right;
+    }
 </style>
 
 <script>
@@ -99,36 +107,7 @@ export default {
             },
             sessions: [],
             messages: [],
-            users: [
-                {
-                    name: 'John',
-                    image: 'https://cdn.vuetifyjs.com/images/lists/1.jpg',
-                    message: 'Hello',
-                    date: '19:45',
-                    unread: 4
-                },
-                {
-                    name: 'Taras',
-                    image: 'https://cdn.vuetifyjs.com/images/lists/2.jpg',
-                    message: 'Hi',
-                    date: '07:09',
-                    unread: 0
-                },
-                {
-                    name: 'Bohdan',
-                    image: 'https://cdn.vuetifyjs.com/images/lists/3.jpg',
-                    message: 'Wats up',
-                    date: '15:57',
-                    unread: 0
-                },
-                {
-                    name: 'Dima',
-                    image: 'https://cdn.vuetifyjs.com/images/lists/4.jpg',
-                    message: 'I am nice',
-                    date: '06:37',
-                    unread: 0
-                }
-            ],
+            users: [],
             tabs: null,
             onlineUsers: []
         }
@@ -137,6 +116,9 @@ export default {
         Chat
     },
     methods: {
+        closeChat() {
+            this.selectedSessionId = null;
+        },
         async fetchOnlineUsers() {
             try {
                 let data =  await this.$store.transportService.call('action.user.online.getlist', {});
@@ -208,15 +190,6 @@ export default {
                 this.selectedSessionId = sessionId;
                 this.$store.commit('setLoader', false);
             } else {
-                // this.$store.transportService.call('action.session.get', {
-                //     sessionId:sessionId
-                // }).then((response) => [
-                //
-                // ]).catch((error) => {
-                //     this.$store.commit('setLoader', false);
-                //     console.log(error);
-                //     alert('Трапилась помилка при отриманні даних сесії');
-                // });
                 this.$store.transportService.call('action.message.getlist', {
                     sessionId:sessionId,
                 }).then((response) => {
@@ -241,7 +214,9 @@ export default {
                             if ('message' === eventType) {
                                 if (undefined !== args[1] && null !== args[1]) {
                                     let message = JSON.parse(args[1]);
-                                    this.messages[session.sessionId].push({message:message});
+                                    if (undefined !== this.messages[session.sessionId]) {
+                                        this.messages[session.sessionId].push({message:message});
+                                    }
                                     this.sessions[i]['lastMessage'] = message;
                                 }
                             }
@@ -249,9 +224,6 @@ export default {
                     });
                 }
             });
-            setTimeout(() => {
-                this.$store.transportService.call('action.user.getlist', {});
-            }, 2000);
         },
         fetchSessions() {
             this.$store.transportService.call('action.session.getlist', {})

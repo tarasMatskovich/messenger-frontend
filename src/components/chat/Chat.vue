@@ -3,6 +3,9 @@
         <v-container>
             <div>
                 <div class="chat-wrapper" v-chat-scroll>
+                    <v-btn class="mx-2 close-chat" fab dark large color="cyan" @click="closeChat">
+                        <v-icon dark>mdi-window-close</v-icon>
+                    </v-btn>
                     <div v-for="message in messagesArray">
                         <message :message="message.message"></message>
                     </div>
@@ -33,6 +36,11 @@
     .message-content-input {
         height: 48px;
     }
+
+    .close-chat {
+        position: absolute;
+        right: 60px;
+    }
 </style>
 
 <script>
@@ -61,6 +69,9 @@
             }
         },
         methods: {
+            closeChat(e) {
+                this.$parent.closeChat();
+            },
             sendMessage(keyDownEvent) {
                 if ('Enter' === keyDownEvent.code) {
                     if (this.sessionId) {
@@ -70,10 +81,10 @@
             },
             sendMessageToSession(session) {
                 let receiverId = null;
-                if (session.user1Id !== this.$store.state.user.id) {
-                    receiverId = session.user2Id;
-                } else {
+                if (Number.parseInt(session.user1Id) !== this.$store.state.user.id) {
                     receiverId = session.user1Id;
+                } else {
+                    receiverId = session.user2Id;
                 }
                 this.$store.transportService.call('action.message.create', {
                     sessionId:session.id,
