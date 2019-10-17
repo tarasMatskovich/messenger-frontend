@@ -70,6 +70,7 @@
                     <chat v-else-if="undefined === selectedSessionId" :messages="[]"></chat>
                 </v-col>
             </v-row>
+            <mini-message v-if="newMessage" :message="newMessage"></mini-message>
         </v-container>
     </div>
 </template>
@@ -93,6 +94,7 @@
 
 <script>
 import Chat from '../components/chat/Chat';
+import MiniMessage from '../components/message/MiniMessage'
 
 export default {
     name: 'home',
@@ -109,13 +111,24 @@ export default {
             messages: [],
             users: [],
             tabs: null,
-            onlineUsers: []
+            onlineUsers: [],
+            newMessage: null,
         }
     },
     components: {
-        Chat
+        Chat,
+        MiniMessage
     },
     methods: {
+        closeNotify() {
+            this.newMessage = null;
+        },
+        showNewMessage(message) {
+            this.newMessage = message;
+            setTimeout(() => {
+                this.newMessage = null;
+            }, 5000);
+        },
         closeChat() {
             this.selectedSessionId = null;
         },
@@ -218,6 +231,9 @@ export default {
                                         this.messages[session.sessionId].push({message:message});
                                     }
                                     this.sessions[i]['lastMessage'] = message;
+                                    if (this.$store.state.user && message.user && Number.parseInt(this.$store.state.user.id) !== Number.parseInt(message.user.id)) {
+                                        this.showNewMessage(message);
+                                    }
                                 }
                             }
                         }
