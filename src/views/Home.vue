@@ -70,7 +70,7 @@
                     <chat v-else-if="undefined === selectedSessionId" :messages="[]"></chat>
                 </v-col>
             </v-row>
-            <mini-message v-if="newMessage" :message="newMessage"></mini-message>
+            <mini-message v-if="newMessage && null === selectedSessionId" :message="newMessage"></mini-message>
         </v-container>
     </div>
 </template>

@@ -113,8 +113,18 @@ export default {
         return {
             appTitle: 'Secure Messenger',
             drawer: false,
-            user: null,
-            items: [],
+            items: [
+                {
+                    title: 'Налаштування',
+                    icon: 'mdi-settings-transfer-outline',
+                    link: '/settings'
+                },
+                {
+                    title: 'Вийти',
+                    icon: 'mdi-logout',
+                    link: '/logout'
+                }
+            ],
             defaultItems: [
                 {
                     title: 'Увійти',
@@ -128,6 +138,11 @@ export default {
                 }
             ]
         };
+    },
+    computed: {
+        user() {
+            return this.$store.user !== null;
+        }
     }
 };
 </script>

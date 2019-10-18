@@ -6,7 +6,7 @@
                 raised
         >
             <v-list-item three-line>
-                <v-list-item-content>
+                <v-list-item-content @click="openDialog(message.sessionId)" class="message-content">
                     <div class="overline mb-4">Нове повідомлення</div>
                     <v-list-item-title class="headline mb-1">{{message.user.name}}</v-list-item-title>
                     <v-list-item-subtitle>{{message.content}}</v-list-item-subtitle>
@@ -32,6 +32,10 @@
         name: "MiniMessage",
         props: ['message'],
         methods: {
+            openDialog(sessionId) {
+                this.closeMessage();
+                this.$parent.openChat(sessionId);
+            },
             closeMessage() {
                 this.$parent.closeNotify();
             }
@@ -48,5 +52,9 @@
         position: absolute;
         bottom: 40px;
         right: 40px;
+    }
+
+    .message-content {
+        cursor: pointer;
     }
 </style>
