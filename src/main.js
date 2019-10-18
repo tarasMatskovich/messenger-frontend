@@ -12,6 +12,8 @@ Vue.use(VueTheMask);
 Vue.use(require('vue-chat-scroll'));
 store.transportService = transportService;
 
+export const eventBus = new Vue();
+
 new Vue({
     router,
     store,
