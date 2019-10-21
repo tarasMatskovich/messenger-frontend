@@ -257,19 +257,20 @@ export default {
         let user = this.$store.state.user;
         if (!user) {
             this.$router.push('/sign-in');
+        } else {
+            this.$store.transportService.call('action.auth.check', {token: user.token})
+                .then((response) => {
+                    this.showSuccessAlert('Такий користувач є');
+                    console.log(response)
+                })
+                .catch((error) => {
+                    this.$router.push('/sign-in')
+                });
+            this.fetchSessions();
+            this.onlineUsers = await this.fetchOnlineUsers();
+            this.publishNetworkStatus();
+            this.subscribeOnNetworkStatus();
         }
-        this.$store.transportService.call('action.auth.check', {token: user.token})
-            .then((response) => {
-                this.showSuccessAlert('Такий користувач є');
-                console.log(response)
-            })
-            .catch((error) => {
-                this.$router.push('/sign-in')
-            });
-        this.fetchSessions();
-        this.onlineUsers = await this.fetchOnlineUsers();
-        this.publishNetworkStatus();
-        this.subscribeOnNetworkStatus();
     }
 };
 </script>

@@ -26,6 +26,12 @@
                                     @input="$v.password.$touch()"
                                     @blur="$v.password.$touch()"
                                 ></v-text-field>
+                                <v-text-field
+                                        v-if="otpRequired"
+                                        v-model="otpCode"
+                                        label="Код"
+                                        required
+                                ></v-text-field>
                                 <div class="mb-4"></div>
                                 <v-btn
                                     class="mr-4 primary"
@@ -72,7 +78,9 @@ export default {
                 type: 'success',
                 text: '',
                 dismissible: true
-            }
+            },
+            otpRequired: false,
+            otpCode: null,
         };
     },
     computed: {
@@ -105,7 +113,7 @@ export default {
         submit() {
             this.$v.$touch();
             this.$store.commit('setLoader', true);
-            this.$store.transportService.call('action.user.signin', {email:this.email, password: this.password})
+            this.$store.transportService.call('action.user.signin', {email:this.email, password: this.password, code: this.otpCode})
                 .then((response) => {
                     this.$store.commit('setLoader', false);
                     let user = response.user;
@@ -116,6 +124,10 @@ export default {
 
                 })
                 .catch((error) => {
+                    let errorMsg = error.args[0];
+                    if (errorMsg === 'У вас ввімкнена двохфакторна аутентицікація - введіть код') {
+                        this.otpRequired = true;
+                    }
                     this.$store.commit('setLoader', false);
                     this.showErrorAlert(error.args[0]);
                     console.log(error);
