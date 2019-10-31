@@ -57,6 +57,10 @@ class TransportService {
         this.connection.publish(topic, [JSON.stringify(args)]);
     }
 
+    publishRaw(topic, args) {
+        this.connection.publish(topic, args);
+    }
+
 }
 
 export default new TransportService();

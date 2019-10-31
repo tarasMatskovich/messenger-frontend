@@ -66,7 +66,7 @@
                             <!--</v-col>-->
                         <!--</v-row>-->
                     <!--</v-container>-->
-                    <chat v-if="null !== selectedSessionId" :messages="messages[selectedSessionId]" :sessionId="selectedSessionId"></chat>
+                    <chat v-if="null !== selectedSessionId" :messages="messages[selectedSessionId]" :sessionId="selectedSessionId" :publicKey="getPublicKeyBySessionId(selectedSessionId)"></chat>
                     <chat v-else-if="undefined === selectedSessionId" :messages="[]"></chat>
                 </v-col>
             </v-row>
@@ -113,6 +113,9 @@ export default {
             tabs: null,
             onlineUsers: [],
             newMessage: null,
+            originPublicKey: null,
+            originalPrivateKey: null,
+            destinationPublicKey: null
         }
     },
     components: {
@@ -120,6 +123,46 @@ export default {
         MiniMessage
     },
     methods: {
+        getPublicKeyBySessionId(sessionId) {
+          let publicKey = null;
+          this.sessions.forEach((session, i) => {
+              if (undefined !== session.sessionId) {
+                  if (null !== session.sessionId) {
+                      if (Number.parseInt(sessionId) === Number.parseInt(session.sessionId)) {
+                          if (undefined !== session.publicKey && null !== session.publicKey) {
+                              publicKey = session.publicKey;
+                              return;
+                          }
+                      }
+                  }
+              }
+          } );
+          return publicKey;
+        },
+        /** Post a message to the web worker and return a promise that will resolve with the response.  */
+        getWebWorkerResponse (messageType, messagePayload) {
+            return new Promise((resolve, reject) => {
+                // Generate a random message id to identify the corresponding event callback
+                const messageId = Math.floor(Math.random() * 100000);
+                let cryptWorker = this.$store.state.cryptWorker;
+                // Post the message to the webworker
+                cryptWorker.postMessage([messageType, messageId].concat(messagePayload));
+
+                // Create a handler for the webworker message event
+                const handler = function (e) {
+                    // Only handle messages with the matching message id
+                    if (e.data[0] === messageId) {
+                        // Remove the event listener once the listener has been called.
+                        e.currentTarget.removeEventListener(e.type, handler);
+
+                        // Resolve the promise with the message payload.
+                        resolve(e.data[1])
+                    }
+                };
+                // Assign the handler to the webworker 'message' event.
+                cryptWorker.addEventListener('message', handler)
+            })
+        },
         closeNotify() {
             this.newMessage = null;
         },
@@ -206,6 +249,23 @@ export default {
                 this.$store.transportService.call('action.message.getlist', {
                     sessionId:sessionId,
                 }).then((response) => {
+                    // console.log("RECEIVED ENCRYPTED MESSAGES");
+                    // let publicKey = null;
+                    // this.sessions.forEach((session) => {
+                    //    if (Number.parseInt(session.sessionId) === Number.parseInt(sessionId)) {
+                    //        publicKey = session.publicKey;
+                    //    }
+                    // });
+                    // if (null !== publicKey) {
+                    //     console.log("PUBLIC KEY EXIST");
+                    //     response.messages.forEach((message) => {
+                    //         this.getWebWorkerResponse('set-public', ['', publicKey]);
+                    //         this.getWebWorkerResponse('decrypt', message.content).then((result) => {
+                    //             console.log("AFTER DECRYPT INNER MESSAGE");
+                    //             console.log(result);
+                    //         });
+                    //     });
+                    // }
                     if (this.messages[response.sessionId] === undefined) {
                         this.messages[response.sessionId] = response.messages;
                     }
@@ -221,18 +281,48 @@ export default {
         listenSessions() {
             this.sessions.forEach((session, i) => {
                 if (null !== session.sessionId && undefined !== session.sessionId) {
-                    this.$store.transportService.subscribe(`user.session.${session.sessionId}`, (args) => {
+                    this.$store.transportService.subscribe(`user.session.${session.sessionId}`, async (args) => {
+                        console.log('RECEIVED EVENT');
+                        console.log(args);
                         if (undefined !== args[0] && null !== args[0]) {
                             let eventType = args[0];
                             if ('message' === eventType) {
                                 if (undefined !== args[1] && null !== args[1]) {
+                                    console.log('NEW MESSAGE');
+                                    console.log(args);
                                     let message = JSON.parse(args[1]);
+                                    let result = this.$store.cryptService.decrypt(message.content);
+                                    console.log("AFTER DECRYPT MESSAGE");
+                                    console.log(result);
+                                    message.content = result;
                                     if (undefined !== this.messages[session.sessionId]) {
                                         this.messages[session.sessionId].push({message:message});
                                     }
                                     this.sessions[i]['lastMessage'] = message;
                                     if (this.$store.state.user && message.user && Number.parseInt(this.$store.state.user.id) !== Number.parseInt(message.user.id)) {
                                         this.showNewMessage(message);
+                                    }
+                                }
+                            }
+                            if ('publicKey' === eventType) {
+                                if (undefined !== args[1] && null !== args[1]) {
+                                    console.log('RECEIVED PUBLIC KEY');
+                                    console.log(args);
+                                    let receivedPublicKey = args[1];
+                                    let sessionId = args[2];
+                                    let userId = args[3];
+                                    if (Number.parseInt(this.$store.state.user.id) !== Number.parseInt(userId)) {
+                                        let index = null;
+                                        this.sessions.forEach((session, i) => {
+                                            if (undefined !== session.sessionId) {
+                                                if (Number.parseInt(session.sessionId) === Number.parseInt(sessionId)) {
+                                                    index = i;
+                                                }
+                                            }
+                                        });
+                                        if (null !== index && undefined !== this.sessions[index]) {
+                                            this.sessions[index].publicKey = receivedPublicKey;
+                                        }
                                     }
                                 }
                             }
@@ -243,14 +333,49 @@ export default {
         },
         fetchSessions() {
             this.$store.transportService.call('action.session.getlist', {})
-                .then((res) => {
+                .then(async (res) => {
                     this.sessions = res.sessions;
                     this.listenSessions();
+                    // Initialize crypto webworker thread
+                    // let cryptWorker = new Worker('crypto-worker.js');
+                    // this.$store.commit('setCryptWorker', cryptWorker);
+                    this.originPublicKey = this.$store.cryptService.getPublicKey();
+                    this.originalPrivateKey = this.$store.cryptService.getPrivateKey();
+                    this.pushMyPublicKey();
+                    this.fetchOtherPublicKeys();
+                    this.publishOriginalPublicKey();
                 })
                 .catch((err) => {
                     alert('Помилка');
                     console.log(err);
                 });
+        },
+        publishOriginalPublicKey() {
+            this.sessions.forEach((session) => {
+                if (undefined !== session.sessionId && null !== this.originPublicKey) {
+                    this.$store.transportService.publishRaw(`user.session.${session.sessionId}`,['publicKey', this.originPublicKey, session.sessionId, this.$store.state.user.id]);
+                }
+            });
+        },
+        fetchOtherPublicKeys() {
+            this.sessions.forEach((session) => {
+                if (session.user) {
+                    this.$store.transportService.call('action.user.publickey.get', {accountId:session.user.id})
+                        .then((response) => {
+                            if (response.userKey && response.userKey.key) {
+                                session.publicKey = response.userKey.key;
+                                session.key = response.userKey.key;
+                            }
+                        })
+                        .catch((error) => {
+                            console.log(error);
+                            alert('Трапилась помилка при отриманні публічного коричтувача');
+                        });
+                }
+            });
+        },
+        pushMyPublicKey() {
+            this.$store.transportService.call('action.user.publickey.set', {publicKey:this.originPublicKey});
         }
     },
     async created() {

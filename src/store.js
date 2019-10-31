@@ -7,7 +7,8 @@ export default new Vuex.Store({
     state: {
         loader: false,
         user: null,
-        sessions: []
+        sessions: [],
+        cryptWorker: null
     },
     mutations: {
         setLoader(state, payload) {
@@ -18,7 +19,10 @@ export default new Vuex.Store({
         },
         setSessions(state, payload) {
             state.sessions = payload;
-        }
+        },
+        setCryptWorker(state, payload) {
+            state.cryptWorker = payload;
+}
     },
     actions: {
         getLoader({ state }) {
@@ -29,6 +33,9 @@ export default new Vuex.Store({
         },
         getSessions({ state }) {
             return state.sessions;
+        },
+        getCryptWorker({ state }) {
+            return state.cryptWorker;
         }
     }
 });

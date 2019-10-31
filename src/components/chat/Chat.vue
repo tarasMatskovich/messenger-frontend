@@ -48,12 +48,13 @@
 
     export default {
         name: "Chat",
-        props: ['messages', 'sessionId'],
+        props: ['messages', 'sessionId', 'publicKey'],
         data() {
             return {
                 session:null,
                 messagesArray: this.messages,
-                messageContent: ''
+                messageContent: '',
+                cryptWorker: null
             }
         },
         components: {
@@ -69,6 +70,30 @@
             }
         },
         methods: {
+            /** Post a message to the web worker and return a promise that will resolve with the response.  */
+            getWebWorkerResponse (messageType, messagePayload) {
+                return new Promise((resolve, reject) => {
+                    // Generate a random message id to identify the corresponding event callback
+                    const messageId = Math.floor(Math.random() * 100000);
+                    // Post the message to the webworker
+                    this.cryptWorker.postMessage([messageType, messageId].concat(messagePayload));
+
+                    // Create a handler for the webworker message event
+                    const handler = function (e) {
+                        // Only handle messages with the matching message id
+                        if (e.data[0] === messageId) {
+                            // Remove the event listener once the listener has been called.
+                            e.currentTarget.removeEventListener(e.type, handler);
+
+                            // Resolve the promise with the message payload.
+                            resolve(e.data[1])
+                        }
+                    };
+
+                    // Assign the handler to the webworker 'message' event.
+                    this.cryptWorker.addEventListener('message', handler)
+                })
+            },
             closeChat(e) {
                 this.$parent.closeChat();
             },
@@ -79,18 +104,24 @@
                     }
                 }
             },
-            sendMessageToSession(session) {
+            async sendMessageToSession(session) {
                 let receiverId = null;
                 if (Number.parseInt(session.user1Id) !== this.$store.state.user.id) {
                     receiverId = session.user1Id;
                 } else {
                     receiverId = session.user2Id;
                 }
+                let messageContent = this.messageContent;
+                // const encryptedText = await this.getWebWorkerResponse(
+                //     'encrypt', [ messageContent, this.publicKey ]);
+                const encryptedText = this.$store.cryptService.encrypt(messageContent, this.publicKey);
+                console.log("ENCRYPTED TEXT");
+                console.log(encryptedText);
                 this.$store.transportService.call('action.message.create', {
                     sessionId:session.id,
                     userId: this.$store.state.user.id,
                     receivedUserId: receiverId,
-                    content: this.messageContent
+                    content: encryptedText
                 }).then((response) => {
                     this.messageContent = '';
                 }).catch((error) => {
@@ -109,6 +140,9 @@
                     alert('Трапилась помилка при отриманні даних сесії');
                 });
             }
+        },
+        created() {
+            //this.cryptWorker = this.$store.state.cryptWorker;
         }
     }
 </script>
