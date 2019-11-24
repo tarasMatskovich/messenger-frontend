@@ -115,13 +115,19 @@
                 // const encryptedText = await this.getWebWorkerResponse(
                 //     'encrypt', [ messageContent, this.publicKey ]);
                 const encryptedText = this.$store.cryptService.encrypt(messageContent, this.publicKey);
+                const myEncryptedContent = this.$store.cryptService.encryptForMe(messageContent);
                 console.log("ENCRYPTED TEXT");
                 console.log(encryptedText);
+                const tmp = this.$store.cryptService.decryptWithSenderPublicKey(encryptedText, this.publicKey);
+                console.log("ALSO DECRYPTED TEXT");
+                console.log(tmp);
                 this.$store.transportService.call('action.message.create', {
                     sessionId:session.id,
                     userId: this.$store.state.user.id,
                     receivedUserId: receiverId,
-                    content: encryptedText
+                    content: encryptedText,
+                    senderContent: myEncryptedContent,
+                    publicKey: this.publicKey
                 }).then((response) => {
                     this.messageContent = '';
                 }).catch((error) => {

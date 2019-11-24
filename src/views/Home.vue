@@ -30,7 +30,7 @@
                                             <v-list-item-subtitle>
                                                 <span v-if="session.lastMessage">
                                                     <span class="last-message-user" v-if="session.lastMessage.user">{{session.lastMessage.user.name}}:</span>
-                                                    <span>{{session.lastMessage.content}}</span>
+                                                    <span>{{showLastMessage(session.lastMessage)}}</span>
                                                     <span class="last-message-date">{{session.lastMessage.createdAt}}</span>
                                                 </span>
                                             </v-list-item-subtitle>
@@ -123,6 +123,13 @@ export default {
         MiniMessage
     },
     methods: {
+        showLastMessage(message) {
+            let decryptedMessageContent = this.$store.cryptService.decrypt(message.content);
+            if (decryptedMessageContent) {
+                return decryptedMessageContent;
+            }
+            return message.content;
+        },
         getPublicKeyBySessionId(sessionId) {
           let publicKey = null;
           this.sessions.forEach((session, i) => {
@@ -266,8 +273,24 @@ export default {
                     //         });
                     //     });
                     // }
+                    let encryptedMessages = response.messages;
+                    console.log("ENCRYPTED MESSAGES");
+                    console.log(encryptedMessages);
+                    let decryptedMyMessages = [];
+                    encryptedMessages.forEach((message) => {
+                            //console.log("YES");
+                            let decryptedMessage = this.$store.cryptService.decrypt(message.message.content);
+                            if (decryptedMessage) {
+                                message.message.content = decryptedMessage;
+                                decryptedMyMessages.push(message);
+                            }
+                    });
+                    console.log("DECRYPTED MESSAGES");
+                    console.log(decryptedMyMessages);
+                    console.log("RESPONSE MESSAGES");
+                    console.log(response.messages);
                     if (this.messages[response.sessionId] === undefined) {
-                        this.messages[response.sessionId] = response.messages;
+                        this.messages[response.sessionId] = decryptedMyMessages;
                     }
                     this.selectedSessionId = sessionId;
                     this.$store.commit('setLoader', false);
@@ -289,9 +312,22 @@ export default {
                             if ('message' === eventType) {
                                 if (undefined !== args[1] && null !== args[1]) {
                                     console.log('NEW MESSAGE');
-                                    console.log(args);
                                     let message = JSON.parse(args[1]);
-                                    let result = this.$store.cryptService.decrypt(message.content);
+                                    console.log(message);
+                                    let receiverMessage = message.receiver;
+                                    let senderMessage = message.sender;
+                                    message = message.sender;
+                                    let senderPublicKey = message.publicKey;
+                                    let result = null;
+                                    if (Number.parseInt(message.userId) === Number.parseInt(this.$store.state.user.id)) {
+                                        //alert("DECRYPTED WITH SENDER PUBLIC KEY");
+                                        //result = this.$store.cryptService.decryptWithSenderPublicKey(message.content, senderPublicKey);
+                                        console.log('THIS IS MESSAGE FROM ME');
+                                        result = this.$store.cryptService.decrypt(senderMessage.content);
+                                    } else {
+                                        console.log('THIS IS MESSAGE TO ME');
+                                        result = this.$store.cryptService.decrypt(receiverMessage.content);
+                                    }
                                     console.log("AFTER DECRYPT MESSAGE");
                                     console.log(result);
                                     message.content = result;
@@ -353,7 +389,7 @@ export default {
         publishOriginalPublicKey() {
             this.sessions.forEach((session) => {
                 if (undefined !== session.sessionId && null !== this.originPublicKey) {
-                    this.$store.transportService.publishRaw(`user.session.${session.sessionId}`,['publicKey', this.originPublicKey, session.sessionId, this.$store.state.user.id]);
+                    //this.$store.transportService.publishRaw(`user.session.${session.sessionId}`,['publicKey', this.originPublicKey, session.sessionId, this.$store.state.user.id]);
                 }
             });
         },

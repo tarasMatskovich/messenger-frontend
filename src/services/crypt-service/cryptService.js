@@ -13,6 +13,8 @@ class CryptService {
             localStorage.setItem('publicKey', this.publicKey);
             localStorage.setItem('privateKey', this.privateKey);
         }
+        this.crypt.setPublicKey(this.publicKey);
+        this.crypt.setPrivateKey(this.privateKey);
     }
 
     getPublicKey() {
@@ -24,17 +26,26 @@ class CryptService {
     }
 
     encrypt(content, receiverPublicKey) {
-        let tempPublicKey = this.crypt.getPublicKey();
         this.crypt.setPublicKey(receiverPublicKey);
-        let result = this.crypt.encrypt(content);
-        this.crypt.setPublicKey(tempPublicKey);
-        return result;
+        return this.crypt.encrypt(content);
+    }
+
+    encryptForMe(content) {
+        this.crypt.setPublicKey(this.publicKey);
+        return this.crypt.encrypt(content);
     }
 
     decrypt(content) {
+        this.crypt.setPrivateKey(this.privateKey);
         return this.crypt.decrypt(content);
     }
 
+    decryptWithSenderPublicKey(content, key) {
+        this.crypt.setPublicKey(key);
+        let result = this.crypt.decrypt(content);
+        this.crypt.setPublicKey(this.publicKey);
+        return result;
+    }
 }
 
 export default new CryptService();

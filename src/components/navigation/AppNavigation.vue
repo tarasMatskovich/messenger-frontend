@@ -141,7 +141,7 @@ export default {
     },
     computed: {
         user() {
-            return this.$store.user !== null;
+            return this.$store.state.user !== null;
         }
     }
 };
