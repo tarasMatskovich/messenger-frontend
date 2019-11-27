@@ -97,10 +97,15 @@
             closeChat(e) {
                 this.$parent.closeChat();
             },
+            sendMessageOnNewMessage() {
+                alert('FUCK YOU');
+            },
             sendMessage(keyDownEvent) {
                 if ('Enter' === keyDownEvent.code) {
                     if (this.sessionId) {
                         this.getSession(this.sessionId);
+                    } else {
+                        this.sendMessageOnNewMessage();
                     }
                 }
             },

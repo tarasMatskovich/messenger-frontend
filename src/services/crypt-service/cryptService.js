@@ -25,6 +25,11 @@ class CryptService {
         return this.privateKey;
     }
 
+    setPublicKey(publicKey) {
+        this.publicKey = publicKey;
+        localStorage.setItem('publicKey', this.publicKey);
+    }
+
     encrypt(content, receiverPublicKey) {
         this.crypt.setPublicKey(receiverPublicKey);
         return this.crypt.encrypt(content);

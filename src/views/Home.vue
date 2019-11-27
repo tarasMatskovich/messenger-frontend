@@ -389,7 +389,7 @@ export default {
         publishOriginalPublicKey() {
             this.sessions.forEach((session) => {
                 if (undefined !== session.sessionId && null !== this.originPublicKey) {
-                    //this.$store.transportService.publishRaw(`user.session.${session.sessionId}`,['publicKey', this.originPublicKey, session.sessionId, this.$store.state.user.id]);
+                    this.$store.transportService.publishRaw(`user.session.${session.sessionId}`,['publicKey', this.originPublicKey, session.sessionId, this.$store.state.user.id]);
                 }
             });
         },
@@ -412,6 +412,16 @@ export default {
         },
         pushMyPublicKey() {
             this.$store.transportService.call('action.user.publickey.set', {publicKey:this.originPublicKey});
+        },
+        checkKeyValidity() {
+            // this.$store.transportService.call('action.user.publickey.get', {accountId: this.$store.state.user.id})
+            //     .then((response) => {
+            //         if (response.userKey.key !== this.$store.cryptService.getPublicKey()) {
+            //             let newPublicKey = response.userKey.key;
+            //             this.$store.cryptService.setPublicKey(newPublicKey);
+            //             this.originPublicKey = newPublicKey;
+            //         }
+            //     });
         }
     },
     async created() {
@@ -428,6 +438,7 @@ export default {
                     this.$router.push('/sign-in')
                 });
             this.fetchSessions();
+            this.checkKeyValidity();
             this.onlineUsers = await this.fetchOnlineUsers();
             this.publishNetworkStatus();
             this.subscribeOnNetworkStatus();
