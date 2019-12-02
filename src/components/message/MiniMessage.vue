@@ -34,7 +34,7 @@
         methods: {
             openDialog(sessionId) {
                 this.closeMessage();
-                this.$parent.openChat(sessionId);
+                this.$parent.openChat(sessionId, null);
             },
             closeMessage() {
                 this.$parent.closeNotify();

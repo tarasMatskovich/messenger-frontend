@@ -45,16 +45,16 @@
 
 <script>
     import Message from '../message/Message';
+    import { eventBus } from '../../main';
 
     export default {
         name: "Chat",
-        props: ['messages', 'sessionId', 'publicKey'],
+        props: ['messages', 'sessionId', 'publicKey', 'userId'],
         data() {
             return {
                 session:null,
                 messagesArray: this.messages,
                 messageContent: '',
-                cryptWorker: null
             }
         },
         components: {
@@ -70,35 +70,24 @@
             }
         },
         methods: {
-            /** Post a message to the web worker and return a promise that will resolve with the response.  */
-            getWebWorkerResponse (messageType, messagePayload) {
-                return new Promise((resolve, reject) => {
-                    // Generate a random message id to identify the corresponding event callback
-                    const messageId = Math.floor(Math.random() * 100000);
-                    // Post the message to the webworker
-                    this.cryptWorker.postMessage([messageType, messageId].concat(messagePayload));
-
-                    // Create a handler for the webworker message event
-                    const handler = function (e) {
-                        // Only handle messages with the matching message id
-                        if (e.data[0] === messageId) {
-                            // Remove the event listener once the listener has been called.
-                            e.currentTarget.removeEventListener(e.type, handler);
-
-                            // Resolve the promise with the message payload.
-                            resolve(e.data[1])
-                        }
-                    };
-
-                    // Assign the handler to the webworker 'message' event.
-                    this.cryptWorker.addEventListener('message', handler)
-                })
-            },
             closeChat(e) {
                 this.$parent.closeChat();
             },
             sendMessageOnNewMessage() {
-                alert('FUCK YOU');
+                if (this.userId) {
+                    this.$store.transportService.call('action.session.realtime.create', {
+                        user1Id: this.$store.state.user.id,
+                        user2Id: this.userId
+                    }).then((response) => {
+                        let receiverPublicKey = response.receiverPublicKey;
+                        eventBus.$emit('sessioncreated', {
+                            receiverPublicKey : receiverPublicKey,
+                            userId: this.userId,
+                            sessionId: response.session.id
+                        });
+                        this.getSession(response.session.id);
+                    });
+                }
             },
             sendMessage(keyDownEvent) {
                 if ('Enter' === keyDownEvent.code) {
@@ -117,15 +106,13 @@
                     receiverId = session.user2Id;
                 }
                 let messageContent = this.messageContent;
-                // const encryptedText = await this.getWebWorkerResponse(
-                //     'encrypt', [ messageContent, this.publicKey ]);
                 const encryptedText = this.$store.cryptService.encrypt(messageContent, this.publicKey);
                 const myEncryptedContent = this.$store.cryptService.encryptForMe(messageContent);
                 console.log("ENCRYPTED TEXT");
                 console.log(encryptedText);
                 const tmp = this.$store.cryptService.decryptWithSenderPublicKey(encryptedText, this.publicKey);
                 console.log("ALSO DECRYPTED TEXT");
-                console.log(tmp);
+                console.log(myEncryptedContent);
                 this.$store.transportService.call('action.message.create', {
                     sessionId:session.id,
                     userId: this.$store.state.user.id,
@@ -153,7 +140,11 @@
             }
         },
         created() {
-            //this.cryptWorker = this.$store.state.cryptWorker;
+            eventBus.$on('reloadchat', (eventPayload) => {
+                console.log("I HAVE A NEW MESSAGE (FORCE UPDATE)");
+                this.messagesArray = eventPayload.messages;
+                this.$forceUpdate();
+            })
         }
     }
 </script>

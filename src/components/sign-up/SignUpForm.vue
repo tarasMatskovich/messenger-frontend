@@ -51,7 +51,7 @@
                                     class="mr-4 primary"
                                     @click="submit"
                                     :disabled="hasError"
-                                    >Ввійти</v-btn
+                                    >Зареєструватись</v-btn
                                 >
                                 <v-btn @click="clear">Очистити</v-btn>
                             </form>
@@ -169,6 +169,9 @@ export default {
                     .then((response) => {
                         this.$store.commit('setLoader', false);
                         this.showSuccessAlert('Користувач був успішно створений');
+                        setTimeout(() => {
+                            this.$router.push('/sign-in');
+                        }, 500);
                         console.log(response);
                     })
                     .catch((error) => {

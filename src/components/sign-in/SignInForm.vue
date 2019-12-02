@@ -121,7 +121,9 @@ export default {
                     this.$store.commit('setUser', user);
                     localStorage.setItem('user', JSON.stringify(user));
                     this.showSuccessAlert('Ви успішно ввійшли');
-
+                    setTimeout(() => {
+                        this.$router.push('/');
+                    }, 500);
                 })
                 .catch((error) => {
                     let errorMsg = error.args[0];
